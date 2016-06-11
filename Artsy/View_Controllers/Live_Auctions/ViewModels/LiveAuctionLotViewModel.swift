@@ -299,18 +299,25 @@ class LiveAuctionLotViewModel: NSObject, LiveAuctionLotViewModelType {
         self.winningBidderID = winningBidderID
     }
 
-    func addEvents(newEvents: [LiveEvent]) {
+    func addEvents(newEvents: [LiveEvent], fullEventOrder: [String]) {
+
+        let supposedFullEventOrder = fullEventList.map { $0.eventID }
+        let eventsHaveBeenReordered: Bool = fullEventOrder.beginsWith(supposedFullEventOrder)
 
         model.addEvents(newEvents.map { $0.eventID })
         let newEventViewModels = newEvents.map { LiveAuctionEventViewModel(event: $0, currencySymbol: model.currencySymbol) }
 
-        fullEventList += newEventViewModels
+        if eventsHaveBeenReordered {
+            fullEventList = 
+        } else {
+            fullEventList += newEventViewModels
+        }
 
         updateExistingEventsWithLotState(fullEventList)
         derivedEvents = fullEventList.filter { $0.isUserFacing }
 
         let newDerivedEvents = newEventViewModels.filter { $0.isUserFacing }
-        newEventsSignal.update(newDerivedEvents)
+        newEventsSignal.update(eventsHaveBeenReordered ? [] : newDerivedEvents)
     }
 
 

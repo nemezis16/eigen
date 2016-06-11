@@ -58,6 +58,10 @@ class LiveAuctionEventViewModel: NSObject, LiveAuctionEventViewModelType {
         }
     }
 
+    var eventID: String {
+        return event.eventID
+    }
+
     var dateEventCreated: NSDate {
         return ARStandardDateFormatter.sharedFormatter().dateFromString(event.createdAtString)
     }

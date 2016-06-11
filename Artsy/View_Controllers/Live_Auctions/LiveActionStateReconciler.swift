@@ -132,7 +132,7 @@ private extension PrivateFunctions {
         }
     }
 
-    func updateLotWithEvents(lot: LiveAuctionLotViewModel, lotEvents: [[String: AnyObject]], fullEventOrder: [String]? = nil) {
+    func updateLotWithEvents(lot: LiveAuctionLotViewModel, lotEvents: [[String: AnyObject]], fullEventOrder: [String]) {
         // TODO: fullEventOrder, if specified, yields the _exact_ history and order of events. We need to remove any local events not present in fullEventOrder in case they were undo'd by the operator.
 
         let existingEventIds = Set(lot.eventIDs)
@@ -145,9 +145,9 @@ private extension PrivateFunctions {
         }
         _debugAllEventsSignal.update(newEvents)
 
-        // TODO: is this a good idea? This will remove events we don't know yet
+        // TODO: is this a good idea? This will remove events we don't know yet.
         let events = newEvents.flatMap { LiveEvent(JSON: $0) }
-        lot.addEvents(events)
+        lot.addEvents(events, fullEventOrder: fullEventOrder)
     }
 
     func updateCurrentLotWithIDIfNecessary(newCurrentLotID: LotID?) {

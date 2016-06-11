@@ -48,3 +48,12 @@ extension CollectionType {
         return isEmpty == false
     }
 }
+
+
+extension Array where Element: Equatable {
+    func beginsWith(otherArray: [Element]) -> Bool {
+        return count <= otherArray.count && zip(otherArray, self).reduce(true) { (memo: Bool, tuple) -> Bool in
+            return tuple.0 == tuple.1
+        }
+    }
+}
