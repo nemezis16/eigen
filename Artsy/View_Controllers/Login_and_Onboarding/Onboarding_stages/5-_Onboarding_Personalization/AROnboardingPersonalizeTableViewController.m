@@ -16,7 +16,7 @@
 
 @property (nonatomic, assign) BOOL shouldAnimate;
 @property (nonatomic, strong) AROnboardingPersonalizationGeneImageStateReconciler *geneImageReconciler;
-@property (nonatomic, strong) NSIndexPath *selectedRowToReplace;
+@property (nonatomic, strong, nullable) NSIndexPath *selectedRowToReplace;
 @property (nonatomic, strong, readwrite) NSMutableArray *searchResults;
 @property (nonatomic, strong) UILabel *noResultsLabel;
 @property (nonatomic, assign) BOOL loadedInitialResults;
@@ -66,7 +66,9 @@
             if (searchResults.count) {
                 [self.searchResults replaceObjectAtIndex:self.tableView.indexPathForSelectedRow.row withObject:searchResults[0]];
                 self.selectedRowToReplace = self.tableView.indexPathForSelectedRow;
-                [self.geneImageReconciler addReplacedGene:self.selectedRowToReplace];
+                if (self.selectedRowToReplace) {
+                    [self.geneImageReconciler addReplacedGene:self.selectedRowToReplace];
+                }
             } else if (self.searchResults.count) {
                 [self.searchResults removeObjectAtIndex:self.tableView.indexPathForSelectedRow.row];
             }
