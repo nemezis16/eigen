@@ -86,7 +86,7 @@ static const NSInteger ARAppSearchParallaxDistance = 20;
     [bottomBorder constrainHeight:@"1"];
     [bottomBorder alignLeadingEdgeWithView:self.searchIcon predicate:@"-2"];
     [bottomBorder alignTrailingEdgeWithView:self.textField predicate:@"2"];
-    [bottomBorder constrainTopSpaceToView:self.searchBoxView predicate:@"14"];
+    [bottomBorder constrainTopSpaceToView:self.searchBoxView predicate:@"16"];
 }
 
 - (void)clearTapped:(id)sender
@@ -114,7 +114,7 @@ static const NSInteger ARAppSearchParallaxDistance = 20;
         NSString *path = NSStringWithFormat(@"/artist/%@", result.modelID);
         controller = [[ARSwitchBoard sharedInstance] loadPath:path];
     } else if (result.model == [Gene class]) {
-        controller = [[ARGeneViewController alloc] initWithGeneID:result.modelID];
+        controller = [[ARSwitchBoard sharedInstance] loadGeneWithID:result.modelID];
     } else if (result.model == [Profile class]) {
         controller = [ARSwitchBoard.sharedInstance loadProfileWithID:result.modelID];
     } else if (result.model == [SiteFeature class]) {

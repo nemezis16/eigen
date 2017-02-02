@@ -22,14 +22,14 @@ class AuctionTitleViewSpec: QuickSpec {
 
         sharedExamples("title view") { (context: SharedExampleContext) in
             it("looks good without a registration status") {
-                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true)
+                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true, titleTextAlignment: .left)
                 subject.bounds.size.width = 400
 
                 expect(subject).to( haveValidSnapshot() )
             }
 
             it("looks good with a logged out registration status") {
-                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true)
+                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true, titleTextAlignment: .left)
                 subject.bounds.size.width = 400
 
                 expect(subject).to( haveValidSnapshot() )
@@ -37,15 +37,15 @@ class AuctionTitleViewSpec: QuickSpec {
 
             it("looks good with a not registered registration status") {
                 viewModel = Test_SaleViewModel(sale: sale, saleArtworks: [], bidders: [])
-                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true)
+                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true, titleTextAlignment: .left)
                 subject.bounds.size.width = 400
 
                 expect(subject).to( haveValidSnapshot() )
             }
 
             it("looks good with a registered registration status") {
-                viewModel.stubbedAuctionState.insert(.UserIsRegistered)
-                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true)
+                viewModel.stubbedAuctionState.insert(.userIsRegistered)
+                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: true, titleTextAlignment: .left)
                 subject.bounds.size.width = 400
                 subject.constrainWidth("400")
 
@@ -53,8 +53,8 @@ class AuctionTitleViewSpec: QuickSpec {
             }
 
             it("looks good without a info button") {
-                viewModel.stubbedAuctionState.insert(.UserIsRegistered)
-                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: false)
+                viewModel.stubbedAuctionState.insert(.userIsRegistered)
+                let subject = AuctionTitleView(viewModel: viewModel, delegate: delegate, fullWidth: fullWidth, showAdditionalInformation: false, titleTextAlignment: .left)
                 subject.bounds.size.width = 400
 
                 expect(subject).to( haveValidSnapshot() )
@@ -78,6 +78,6 @@ class AuctionTitleViewSpec: QuickSpec {
 }
 
 class Test_AuctionTitleViewDelegate: AuctionTitleViewDelegate {
-    @objc func userDidPressInfo(titleView: AuctionTitleView) { }
-    @objc func userDidPressRegister(titleView: AuctionTitleView) { }
+    @objc func userDidPressInfo(_ titleView: AuctionTitleView) { }
+    @objc func userDidPressRegister(_ titleView: AuctionTitleView) { }
 }

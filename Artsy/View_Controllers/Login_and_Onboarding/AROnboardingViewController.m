@@ -15,7 +15,6 @@
 #import "ARPersonalizeViewController.h"
 #import "ARAuthProviders.h"
 #import "UIViewController+FullScreenLoading.h"
-#import "AROnboardingMoreInfoViewController.h"
 #import "ARPersonalizeWebViewController.h"
 #import "ARParallaxEffect.h"
 #import "NSString+StringCase.h"
@@ -37,7 +36,6 @@
 @property (nonatomic, assign, readwrite) AROnboardingStage state;
 @property (nonatomic) UIImageView *backgroundView;
 @property (nonatomic) UIScreenEdgePanGestureRecognizer *screenSwipeGesture;
-@property (nonatomic) NSArray *genesForPersonalize;
 @property (nonatomic, strong, readwrite) NSMutableSet *followedItemsDuringOnboarding;
 @property (nonatomic, assign, readwrite) NSInteger budgetRange;
 @property (nonatomic, strong, readwrite) UIView *progressBar;
@@ -81,17 +79,6 @@
     self.screenSwipeGesture = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(edgeSwiped:)];
     self.screenSwipeGesture.edges = UIRectEdgeLeft;
     [self.view addGestureRecognizer:self.screenSwipeGesture];
-
-    __weak typeof(self) wself = self;
-
-    [ArtsyAPI getXappTokenWithCompletion:^(NSString *xappToken, NSDate *expirationDate) {
-        [ArtsyAPI getPersonalizeGenesWithSuccess:^(NSArray *genes) {
-            __strong typeof (wself) sself = wself;
-            sself.genesForPersonalize = genes;
-        } failure:^(NSError *error) {
-            ARErrorLog(@"Couldn't get personalize genes. Error: %@", error.localizedDescription);
-        }];
-    }];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(didBecomeActive)
@@ -226,7 +213,7 @@
 - (void)presentPersonalizationQuestionnaires
 {
     self.state = AROnboardingStagePersonalizeArtists;
-    ARPersonalizeViewController *personalize = [[ARPersonalizeViewController alloc] initWithGenes:self.genesForPersonalize forStage:self.state];
+    ARPersonalizeViewController *personalize = [[ARPersonalizeViewController alloc] initForStage:self.state];
     personalize.delegate = self;
     [self pushViewController:personalize animated:YES];
     [self updateProgress:0.25];
@@ -235,7 +222,7 @@
 - (void)presentPersonalizeCategories
 {
     self.state = AROnboardingStagePersonalizeCategories;
-    ARPersonalizeViewController *personalize = [[ARPersonalizeViewController alloc] initWithGenes:self.genesForPersonalize forStage:self.state];
+    ARPersonalizeViewController *personalize = [[ARPersonalizeViewController alloc] initForStage:self.state];
     personalize.delegate = self;
     [self pushViewController:personalize animated:YES];
     [self updateProgress:0.5];
@@ -244,7 +231,7 @@
 - (void)presentPersonalizeBudget
 {
     self.state = AROnboardingStagePersonalizeBudget;
-    ARPersonalizeViewController *personalize = [[ARPersonalizeViewController alloc] initWithGenes:self.genesForPersonalize forStage:self.state];
+    ARPersonalizeViewController *personalize = [[ARPersonalizeViewController alloc] initForStage:self.state];
     personalize.delegate = self;
     [self pushViewController:personalize animated:YES];
     [self updateProgress:0.75];
@@ -306,11 +293,6 @@
     [self updateProgress:0.95];
 }
 
-- (void)didSignUpAndLogin
-{
-    [self dismissOnboardingWithVoidAnimation:YES];
-}
-
 - (void)applyPersonalizationToUser
 {
     NSString *stringRange = [NSString stringWithFormat:@"%@", @(self.budgetRange)];
@@ -355,42 +337,10 @@
     [self pushViewController:webViewController animated:YES];
 }
 
-- (void)signUpWithFacebook
+
+- (void)finishAccountCreation
 {
-    __weak typeof(self) wself = self;
-    [self ar_presentIndeterminateLoadingIndicatorAnimated:YES];
-    [ARAuthProviders getTokenForFacebook:^(NSString *token, NSString *email, NSString *name) {
-        __strong typeof (wself) sself = wself;
-        [sself fbSuccessWithToken:token email:email name:name];
-
-    } failure:^(NSError *error) {
-        __strong typeof (wself) sself = wself;
-
-        [sself ar_removeIndeterminateLoadingIndicatorAnimated:YES];
-
-        NSString * reason = error.userInfo[@"com.facebook.sdk:ErrorLoginFailedReason"];
-        if (![reason isEqualToString:@"com.facebook.sdk:UserLoginCancelled"]) {
-            [sself fbError];
-        }
-    }];
-}
-
-- (void)fbSuccessWithToken:(NSString *)token email:(NSString *)email name:(NSString *)name
-{
-    AROnboardingMoreInfoViewController *more = [[AROnboardingMoreInfoViewController alloc] initForFacebookWithToken:token email:email name:name];
-    more.delegate = self;
-    [self ar_removeIndeterminateLoadingIndicatorAnimated:YES];
-    [self pushViewController:more animated:YES];
-}
-
-- (void)fbError
-{
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Couldn’t get Facebook credentials"
-                                                    message:@"Couldn’t get Facebook credentials. Please link a Facebook account in the settings app. If you continue having trouble, please email Artsy support at support@artsy.net"
-                                                   delegate:self
-                                          cancelButtonTitle:@"OK"
-                                          otherButtonTitles:nil];
-    [alert show];
+    [self dismissOnboardingWithVoidAnimation:YES];
 }
 
 - (void)twitterError
@@ -416,11 +366,6 @@
 #pragma mark -
 #pragma mark Navigation Delegate
 
-- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
-{
-    NSString *viewIdentifier = [NSString humanReadableStringFromClass:[viewController class]];
-    if (viewIdentifier) [ARAnalytics pageView:viewIdentifier];
-}
 
 - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
                                   animationControllerForOperation:(UINavigationControllerOperation)operation

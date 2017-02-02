@@ -56,7 +56,7 @@ NSInteger const ARLiveAuctionsCurrentWebSocketVersionCompatibility = 3;
 @interface ARSwitchBoard ()
 
 @property (nonatomic, strong) JLRoutes *routes;
-@property (nonatomic, strong) Aerodramus *echo;
+@property (nonatomic, readwrite, strong) Aerodramus *echo;
 @property (nonatomic, strong) NSArray<ARSwitchBoardDomain *> *domains;
 
 @end
@@ -136,22 +136,23 @@ NSInteger const ARLiveAuctionsCurrentWebSocketVersionCompatibility = 3;
 
     __weak typeof(self) wself = self;
 
+    [self.routes addRoute:@"/artist/:slug/auction-results" priority:0 handler:JLRouteParams {
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"/artist/%@/auction-results", parameters[@"slug"]]];
+        return [[ARInternalMobileWebViewController alloc] initWithURL:url];
+    }];
+
     [self registerEchoRouteForKey:@"ARArtistRoute" handler:JLRouteParams {
         __strong typeof (wself) sself = wself;
         return [sself loadArtistWithID:parameters[@"id"]];
     }];
 
     // For artists in a gallery context, like https://artsy.net/spruth-magers/artist/astrid-klein . Until we have a native
-    // version of the gallery profile/context, we will use the normal native artist view instead of showing a web view on iPad.
-
-    if ([UIDevice isPad]) {
-        [self registerEchoRouteForKey:@"ARProfileArtistRoute" handler:JLRouteParams {
-            __strong typeof (wself) sself = wself;
-
-            Fair *fair = [parameters[@"fair"] isKindOfClass:Fair.class] ? parameters[@"fair"] : nil;
-            return [sself loadArtistWithID:parameters[@"id"] inFair:fair];
-        }];
-    }
+    // version of the gallery profile/context, we will use the normal native artist view instead of showing a web view.
+    [self registerEchoRouteForKey:@"ARProfileArtistRoute" handler:JLRouteParams {
+        __strong typeof (wself) sself = wself;
+        Fair *fair = [parameters[@"fair"] isKindOfClass:Fair.class] ? parameters[@"fair"] : nil;
+        return [sself loadArtistWithID:parameters[@"id"] inFair:fair];
+    }];
 
     [self registerEchoRouteForKey:@"ARArtworkRoute" handler:JLRouteParams {
         __strong typeof (wself) sself = wself;

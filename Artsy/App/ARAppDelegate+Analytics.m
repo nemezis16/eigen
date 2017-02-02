@@ -26,7 +26,6 @@
 #import "Profile.h"
 #import "ARFairMapAnnotation.h"
 #import "ARAnalyticsVisualizer.h"
-#import "ARAnalyticsPapertrail.h"
 #import "ARAppNotificationsDelegate.h"
 
 // View Controllers
@@ -46,7 +45,6 @@
 #import "AROnboardingPersonalizeTableViewController.h"
 #import "ARPriceRangeViewController.h"
 #import "ARViewInRoomViewController.h"
-#import "AROnboardingMoreInfoViewController.h"
 #import "ARArtistViewController.h"
 #import "ARFairViewController.h"
 #import "ARFairSearchViewController.h"
@@ -58,7 +56,6 @@
 #import "ARBrowseViewController.h"
 #import "ARSearchViewController.h"
 #import "ARNavigationController.h"
-#import "ARHeroUnitViewController.h"
 #import <Emission/ARArtistComponentViewController.h>
 
 // Views
@@ -553,6 +550,7 @@
                                 return @{
                                     @"followed": sender.isHearted? @"yes" : @"no",
                                     @"gene_id" : controller.gene.geneID ?: @"",
+                                    @"source_screen": @"gene page"
                                 };
                             },
                         },
@@ -585,6 +583,13 @@
                             ARAnalyticsEventName: ARAnalyticsOnboardingLogin,
                             ARAnalyticsSelectorName: NSStringFromSelector(@selector(logIn:)),
                         },
+                        @{
+                            ARAnalyticsEventName: ARAnalyticsOnboardingLoginSuccess,
+                            ARAnalyticsSelectorName: ARAnalyticsSelector(loggedInWithSharedCredentials),
+                            ARAnalyticsProperties: ^NSDictionary*(id controller, NSArray *_) {
+                                return @{ @"context type": @"safari keychain" };
+                            }
+                        }
                     ]
                 },
                 @{
@@ -854,8 +859,8 @@
                         @{
                             ARAnalyticsEventName: ARAnalyticsArtistFollow,
                             ARAnalyticsSelectorName: NSStringFromSelector(@selector(artistFollowed:)),
-                            ARAnalyticsProperties: ^NSDictionary*(ARPersonalizeViewController *controller, NSArray *_){
-                                Artist *artist = _.firstObject;
+                            ARAnalyticsProperties: ^NSDictionary*(ARPersonalizeViewController *controller, NSArray *params){
+                                Artist *artist = params.firstObject;
                                 NSString *sourceScreen = @"";
                                 if (controller.searchResultsTable.contentDisplayMode == ARTableViewContentDisplayModePlaceholder) {
                                     sourceScreen = @"onboarding top artists";
@@ -877,18 +882,18 @@
                         @{
                             ARAnalyticsEventName: ARAnalyticsGeneFollow,
                             ARAnalyticsSelectorName: NSStringFromSelector(@selector(categoryFollowed:)),
-                            ARAnalyticsProperties: ^NSDictionary*(ARPersonalizeViewController *controller, NSArray *_){
-//                                Gene *gene = _.firstObject;
+                            ARAnalyticsProperties: ^NSDictionary*(ARPersonalizeViewController *controller, NSArray *params){
+                                Gene *gene = params.firstObject;
                                 NSString *sourceScreen = @"";
                                 if (controller.searchResultsTable.contentDisplayMode == ARTableViewContentDisplayModePlaceholder) {
-                                    sourceScreen = @"onboarding top artists";
+                                    sourceScreen = @"onboarding top categories";
                                 } else if (controller.searchResultsTable.contentDisplayMode == ARTableViewContentDisplayModeSearchResults) {
                                     sourceScreen = @"onboarding search";
                                 } else if (controller.searchResultsTable.contentDisplayMode == ARTableViewContentDisplayModeRelatedResults) {
                                     sourceScreen = @"onboarding recommended";
                                 }
                                 return @{
-                                         @"gene_id" : @"this needs replacing once categories are fixed", //gene.geneID,
+                                         @"gene_id" : gene.geneID,
                                          @"source_screen" : sourceScreen
                                         };
                             },
@@ -924,20 +929,6 @@
                                 return @{
                                     @"via_rotation" : @(controller.popOnRotation),
                                     @"artwork" : controller.artwork.artworkID ?: @""
-                                };
-                            },
-                        }
-                    ]
-                },
-                @{
-                    ARAnalyticsClass: ARSiteHeroUnitViewController.class,
-                    ARAnalyticsDetails: @[
-                        @{
-                            ARAnalyticsEventName: ARAnalyticsTappedHeroUnit,
-                            ARAnalyticsSelectorName: NSStringFromSelector(@selector(tappedUnit:)),
-                            ARAnalyticsProperties: ^NSDictionary*(ARSiteHeroUnitViewController *vc, NSArray *_){
-                                return @{
-                                    @"destination" : vc.heroUnit.link ?: @""
                                 };
                             },
                         }
@@ -1006,9 +997,16 @@
                                 return sender.isHearted == YES;
                             },
                             ARAnalyticsProperties: ^NSDictionary*(ARArtistViewController *controller, NSArray *parameters){
+                                NSString *sourcePage = @"";
+                                if (controller.fair) {
+                                    sourcePage = @"artist fair page";
+                                } else {
+                                    sourcePage = @"artist page";
+                                }
                                 return @{
                                          @"artist_slug" : controller.artist.artistID ?: @"",
-                                         @"source_screen" : @"Artist"
+                                         @"artist_id" : controller.artist.artistID ?: @"",
+                                         @"source_screen" : sourcePage
                                 };
                             },
                         },
